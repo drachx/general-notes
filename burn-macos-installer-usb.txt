@@ -1,0 +1,1 @@
+$ sudo /Applications/Install\ macOS\ High\ Sierra.app/Contents/Resources/createinstallmedia --volume /Volumes/1013 --applicationpath /Applications/Install\ macOS\ High\ Sierra.app/ --nointeraction && say Done
