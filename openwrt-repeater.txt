@@ -1,0 +1,72 @@
+SOURCE: https://oldwiki.archive.openwrt.org/doc/recipes/relayclient
+
+Doing this via the Web GUI instead
+
+These steps are for this (aka Wireless Ethernet Bridge) are exactly the same as the above instructions, but will be done through the Web Interface, rather than through a SSH connection. This has been tested on the Meraki MR18, with the LuCi web Interface.
+
+I will be refer to this second router (that has OpenWRT) as the "Client Router". In my references, it will have an IP of 192.168.1.1, and later on 172.16.16.154 as well. It will be connecting to the "Main Router", which will have an IP of 172.16.16.1.
+
+Step 1: Information to Note
+
+    Your Main Router's WPA2 encryption key (aka "WiFi password")
+    Your Main Router's subnet (In my example, I will use 172.16.16.0/16 which means my subnet mask is 255.255.0.0)
+    Your Main Router's SSID (aka "WiFi network name")
+
+Step 2: Initial Set-up
+
+    Power on your Client Router
+    Connect an Ethernet (RJ45) cable from your Computer to your Client Router.
+    Set your computer to have a Static IP address of 192.168.1.5 and a Gateway of 192.168.1.1
+    In System > Administration, make sure you have the packages luci-proto-relay and relayd-bridge installed.
+
+Step 3: Joining the Main Router's WiFi
+
+    Open your browser, and go to http://192.168.1.1/
+    Go to the page Network > WiFi
+    Beside your preferred radio, such as Radio1 (801.11an), click Scan.
+    Select your Main Router's SSID (ex: Eagle)
+    Enter your PSK (Wi-Fi password).
+    Create a NEW Network called "wwan" or anything else you like (ex: "Quack")
+    Firewall-Zone should be set to "lan".
+
+Step 4: Create the WiFi Client Interface
+
+    Go to the page Network > Interfaces
+    Edit the above interface (called "wwan", "Quack" or whatever you chose)
+    Set Protocol/Mode = DHCP Client
+
+Step 5: Create Bridge Interface
+
+    Go to the page Network > Interfaces
+    Create a new Interface called "stabridge"
+    Set Protocol/Mode = Relay Bridge
+    Relay between "lan" and "wwan", "Quack" or whatever you chose)
+    Local IPv4 Address for the Bridge = "172.16.16.154"
+
+Step 6: Update the "lan" Interface
+
+    Go to the page Network > Interfaces
+    Beside "lan", click Edit.
+    Set IPv4 Gateway to the IP address of your Main Router (in my case, it's 172.16.16.1)
+    Set Custom DNS to also be the IP address of your Main Router (in my case, it's 172.16.16.1)
+    Under the section of DHCP Server, CHECK OFF "Ignore Interface"
+
+Step 7: Allow Firewall Forwarding
+
+    Go to the page Network > Firewall
+    Scroll down to "Zones". Beside "lan", click Edit.
+    Set Forward = Accept. (Input & Output should already be set to Accept)
+    Set Covered Network = "lan" (default) & "wwan", "Quack" or whatever you chose)
+
+Step 8: Reboot Your Client Router
+
+    Go to the page System > Reboot > Reboot Now
+    On your computer, clear your static IP settings, and let the IP be retrieved automatically.
+    Your Client Router should now be accessible at the address of 172.16.16.154 or whatever you chose.
+    Your computer should also have an IP address in the same subnet as your Main Router (In my case, it's 172.16.16.#
+    If you set your computer to the same static IP address settings as in Step 2-3, you should still be able to connect to the client router at 192.168.1.1
+
+Step 9: Set a DHCP Reservation in the Main Router's Settings
+
+    In your Main Router, set a static DHCP reservation for your Client Router's MAC Address. Use the SAME IP address as in Step 5-5 (In my case, it would be 172.16.16.154)
+
