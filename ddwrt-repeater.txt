@@ -1,0 +1,53 @@
+SOURCE: https://wiki.dd-wrt.com/wiki/index.php/Repeater_Bridge
+
+Make sure to click Save and not Apply between steps, as Save will commit the changes to NVRAM withough activating them (which Apply does), to prevent access problems, such as changing the IP address.
+
+    1. Reset to Factory Defaults on secondary DD-WRT router
+        - Optional (but suggested if having issues): Perform a hard reset
+            - DO NOT 30-30-30 ARM routers. See your model wiki; some reset using the WPS button at power-up
+            - Hold the reset button until lights flash (10-30sec) or 30-30-30 if appropriate for your router 
+    2. Hook up to the secondary router with an ethernet cable or as a wireless client.
+        - The dd-wrt default wireless SSID is "dd-wrt" 
+    3. Open the GUI address http://192.168.1.1 in your web browser
+    4. Open the Wireless -> Basic Settings tab
+        - Physical Interface Section (for multi-band routers, only use Repeater on one radio)
+            - Wireless Mode: Repeater Bridge
+            - Wireless Network Mode: Match Primary Router
+                - Usually N*-Mixed (or G-Only for pre-N routers), as Mixed may not work) 
+            - Wireless Network Name SSID: Must Match Primary Router EXACTLY including case
+                - Note: some devices may not properly handle special characters, spaces, etc. 
+            - Wireless Channel: Usually leave at Auto for DD-WRT to determine the channel
+            - Sensitivity Range (ACK Timing): 0 is recommended (this setting is not available for all routers)
+            - Save (not Apply) 
+        - Virtual Interfaces Section: Click "Add"
+            - Wireless Network Name(SSID): Same as Primary SSID. If having problems, try a different one.
+                - k2.4 (broadcom folder) builds may require using a different SSID from the Primary 
+            - Save (not Apply) 
+    5. Open the Wireless -> Wireless Security tab
+        - Physical Interface section (WPA2-AES strongly advised)
+            - Security Mode, WPA Algorithms & Shared Key: Must Match Primary Router 
+        - Virtual Interfaces Section
+            - Security Mode, WPA Algorithms & Shared Key: Must Match Physical Interface for k2.4
+                - WPA2-AES should be able to use a different password on k2.6 and newer
+                - WEP (with any password) or Open (disabled) should work on any kernel 
+            - Save (not Apply) 
+    6. Open the Security -> Firewall tab
+        - Uncheck all boxes...except Filter Multicast (see why here)
+        - Disable SPI Firewall (workaround for issues)
+            - Save (not Apply) 
+    7. Open the Services -> Services tab: disable DNSMasq, then Save (not Apply)
+    8. Open the Setup -> Basic Setup tab
+        - WAN Connection Type: Disabled
+        - IP Address: 192.168.1.2 (if not in use and assuming Primary Router IP is 192.168.1.1)
+        - Mask: 255.255.255.0
+        - Gateway: 192.168.1.1 (or Primary Router IP if not 192.168.1.1)
+        - DHCP Server: Disable
+        - Local DNS: 192.168.1.1 (or Primary Router IP if not 192.168.1.1)
+        - Assign WAN Port to Switch: use WAN port as another LAN port (also allows access after a reset)
+        - Change the Router Name (e.g. "DD-RB1") and set the Time Zone
+            - Save (not Apply) 
+    9. Go to the (Setup ->) Advanced Routing tab: Change the Mode to Router
+        - Save and then APPLY settings: allow router to reboot 
+    10. Log back into the router GUI at its new IP address: http://192.168.1.2 (or the chosen IP Address above)
+    11. Check internet connectivity: try to ping the second router from a client plugged into the ethernet port, then try to ping the primary router, and finally try the internet.
+    12. Reboot the router if not working 
